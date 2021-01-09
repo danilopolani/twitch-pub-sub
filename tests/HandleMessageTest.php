@@ -4,7 +4,6 @@ namespace Danilopolani\TwitchPubSub\Tests;
 
 use Danilopolani\TwitchPubSub\TwitchPubSub;
 use Mockery;
-use Mockery\MockInterface;
 
 class HandleMessageTest extends TestCase
 {
@@ -91,7 +90,7 @@ class HandleMessageTest extends TestCase
             'type' => 'MESSAGE',
             'data' => [
                 'topic' => 'foo',
-                'message' => '{'
+                'message' => '{',
             ],
         ];
 
@@ -111,7 +110,7 @@ class HandleMessageTest extends TestCase
                 'topic' => 'foo',
                 'message' => json_encode([
                     'type' => 'thread',
-                ])
+                ]),
             ],
         ];
 
@@ -132,7 +131,7 @@ class HandleMessageTest extends TestCase
                 'topic' => 'topic',
                 'message' => json_encode([
                     'foo' => 'bar',
-                ])
+                ]),
             ],
         ];
 

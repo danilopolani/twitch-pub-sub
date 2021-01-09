@@ -25,13 +25,13 @@ class TestCase extends BaseTestCase
      * @param  array $parameters
      * @return mixed
      */
-    protected function callMethod($object, string $method , array $parameters = [])
+    protected function callMethod($object, string $method, array $parameters = [])
     {
         try {
             $className = get_class($object);
             $reflection = new \ReflectionClass($className);
         } catch (\ReflectionException $e) {
-           throw new \Exception($e->getMessage());
+            throw new \Exception($e->getMessage());
         }
 
         $method = $reflection->getMethod($method);
