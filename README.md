@@ -1,8 +1,7 @@
 # (Laravel) Twitch PubSub
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/danilopolani/twitch-pub-sub.svg?style=flat-square)](https://packagist.org/packages/danilopolani/twitch-pub-sub)
-[![Build Status](https://img.shields.io/travis/danilopolani/twitch-pub-sub/master.svg?style=flat-square)](https://travis-ci.org/danilopolani/twitch-pub-sub)
-[![Quality Score](https://img.shields.io/scrutinizer/g/danilopolani/twitch-pub-sub.svg?style=flat-square)](https://scrutinizer-ci.com/g/danilopolani/twitch-pub-sub)
+[![Build Status](https://travis-ci.com/danilopolani/twitch-pub-sub.svg)](https://travis-ci.com/danilopolani/twitch-pub-sub)
 [![Total Downloads](https://img.shields.io/packagist/dt/danilopolani/twitch-pub-sub.svg?style=flat-square)](https://packagist.org/packages/danilopolani/twitch-pub-sub)
 
 A simple package to connect to Twitch PubSub (Web Sockets) in a Laravel application, dispatching **Events** whenever a message for a topic is received.  
