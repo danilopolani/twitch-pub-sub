@@ -88,10 +88,16 @@ Event::listen(function (\Danilopolani\TwitchPubSub\WhisperReceived $event) {
 composer test
 ```
 
-With Docker:
+With Docker (Windows):
 
 ```bash
-docker build -t twitch-pub-sub . && docker run -it twitch-pub-sub
+docker run --rm -v %cd%:/app composer:2 bash -c "cd /app && composer install && ./vendor/bin/phpunit"
+```
+
+With Docker (Linux/OSX):
+
+```bash
+docker run --rm -v $(pwd):/app composer:2 bash -c "cd /app && composer install && ./vendor/bin/phpunit"
 ```
 
 ## Changelog

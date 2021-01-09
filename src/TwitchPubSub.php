@@ -9,6 +9,7 @@ use Amp\Websocket\ClosedException;
 use Amp\Websocket\Options;
 use Exception;
 use Illuminate\Contracts\Events\Dispatcher as EventsDispatcher;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -109,19 +110,23 @@ class TwitchPubSub
      */
     protected function handleMessage(array $payload): void
     {
-        // Skip response, heartbeat etc. and if there's no topic key
-        if ($payload['type'] !== 'MESSAGE' || !$topic = ($payload['data']['topic'] ?? null)) {
+        // Skip response, heartbeat etc. and if there's no topic key or message
+        if (Arr::get($payload, 'type') !== 'MESSAGE' || !Arr::has($payload, 'data.message') || !$topic = Arr::get($payload, 'data.topic')) {
             return;
         }
 
         $message = json_decode($payload['data']['message'], true);
+
+        if (!is_array($message)) {
+            return;
+        }
 
         if (isset($message['data'])) {
             $message['data'] = json_decode($message['data'], true);
         }
 
         // Skip threads for whispers
-        if ($message['type'] === 'thread') {
+        if (Arr::get($message, 'type') === 'thread') {
             return;
         }
 
@@ -156,21 +161,21 @@ class TwitchPubSub
      *
      * @param  string $topic
      * @param  array $data
-     * @return void
+     * @return bool
      */
-    protected function dispatchEvent(string $topic, array $data): void
+    protected function dispatchEvent(string $topic, array $data): bool
     {
         if (!$eventName = $this->getEventName($topic)) {
             Log::warning('[TwitchPubSub] Event name not found for topic "' . $topic . '"');
 
-            return;
+            return false;
         }
 
         $className = '\Danilopolani\TwitchPubSub\Events\\' . $eventName;
         if (!class_exists($className)) {
             Log::warning('[TwitchPubSub] Event class not found for event "' . $eventName . '"');
 
-            return;
+            return false;
         }
 
         // Wrap dispatcher inside a try/catch to avoid breaking the loop for a wrong listener
@@ -182,7 +187,11 @@ class TwitchPubSub
                 $eventName,
                 $e->getMessage()
             ));
+
+            return false;
         }
+
+        return true;
     }
 
     /**
