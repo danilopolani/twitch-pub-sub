@@ -26,18 +26,20 @@ There's only one needed function to let the package work: `::run(string|array $t
 Usually you would put the main function of the package inside an [Artisan Command](https://laravel.com/docs/8.x/artisan#writing-commands).
 
 ``` php
+
+use \Danilopolani\TwitchPubSub\Facades\TwitchPubSub;
+
 /**
  * Execute the console command.
  *
- * @param  \App\Support\DripEmailer  $drip
  * @return mixed
  */
-public function handle(\Danilopolani\TwitchPubSub\Facades\TwitchPubSub $twitch)
+public function handle()
 {
-    $twitch->run('a1b2c3d4e5', ['whispers.44322889']);
+    TwitchPubSub::run('a1b2c3d4e5', ['whispers.44322889']);
 
     // Or the array syntax that support multiple users too
-    $twitch->run([
+    TwitchPubSub::run([
         'a1b2c3d4e5' => ['whispers.44322889'],
         'f6g7h8j9k0' => ['channel-bits-events-v1.123456', 'channel-points-channel-v1.123456'],
     ]);
