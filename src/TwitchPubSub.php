@@ -22,7 +22,7 @@ class TwitchPubSub
     /**
      * Class constructor.
      *
-     * @var EventsDispatcher $events
+     * @var EventsDispatcher
      */
     public function __construct(EventsDispatcher $events)
     {
@@ -40,7 +40,7 @@ class TwitchPubSub
      */
     public function run($twitchAuthToken, array $topics = []): void
     {
-        if (!$subscriptions = $this->getSubscriptionsData($twitchAuthToken, $topics)) {
+        if (! $subscriptions = $this->getSubscriptionsData($twitchAuthToken, $topics)) {
             throw new Exception('Subscriptions array is not valid. It must be an associative array with Auth Token (key) and topics (value).');
         }
 
@@ -111,13 +111,13 @@ class TwitchPubSub
     protected function handleMessage(array $payload): void
     {
         // Skip response, heartbeat etc. and if there's no topic key or message
-        if (Arr::get($payload, 'type') !== 'MESSAGE' || !Arr::has($payload, 'data.message') || !$topic = Arr::get($payload, 'data.topic')) {
+        if (Arr::get($payload, 'type') !== 'MESSAGE' || ! Arr::has($payload, 'data.message') || ! $topic = Arr::get($payload, 'data.topic')) {
             return;
         }
 
         $message = json_decode($payload['data']['message'], true);
 
-        if (!is_array($message)) {
+        if (! is_array($message)) {
             return;
         }
 
@@ -165,15 +165,15 @@ class TwitchPubSub
      */
     protected function dispatchEvent(string $topic, array $data): bool
     {
-        if (!$eventName = $this->getEventName($topic)) {
-            Log::warning('[TwitchPubSub] Event name not found for topic "' . $topic . '"');
+        if (! $eventName = $this->getEventName($topic)) {
+            Log::warning('[TwitchPubSub] Event name not found for topic "'.$topic.'"');
 
             return false;
         }
 
-        $className = '\Danilopolani\TwitchPubSub\Events\\' . $eventName;
-        if (!class_exists($className)) {
-            Log::warning('[TwitchPubSub] Event class not found for event "' . $eventName . '"');
+        $className = '\Danilopolani\TwitchPubSub\Events\\'.$eventName;
+        if (! class_exists($className)) {
+            Log::warning('[TwitchPubSub] Event class not found for event "'.$eventName.'"');
 
             return false;
         }
@@ -208,7 +208,7 @@ class TwitchPubSub
         ];
 
         // Validate subscriptions array
-        if (!Collection::make($subscriptions)->every(fn ($value) => is_array($value))) {
+        if (! Collection::make($subscriptions)->every(fn ($value) => is_array($value))) {
             return null;
         }
 

@@ -6,18 +6,18 @@ use Illuminate\Foundation\Events\Dispatchable;
 
 abstract class TwitchEvent
 {
-  use Dispatchable;
+    use Dispatchable;
 
-  public array $data;
+    public array $data;
 
-  /**
-  * Create a new event instance.
-  *
-  * @param  array $data
-  * @return void
-  */
-  public function __construct(array $data)
-  {
-    $this->data = $data;
-  }
+    /**
+     * Create a new event instance.
+     *
+     * @param  array $data
+     * @return void
+     */
+    public function __construct(array $data)
+    {
+        $this->data = $data;
+    }
 }
