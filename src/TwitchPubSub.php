@@ -2,6 +2,7 @@
 
 namespace Danilopolani\TwitchPubSub;
 
+use function Amp\call as ampCall;
 use Amp\Loop;
 use Amp\Websocket\Client;
 use Amp\Websocket\Client\Connection;
@@ -15,8 +16,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
-
-use function Amp\call as ampCall;
 
 class TwitchPubSub
 {
