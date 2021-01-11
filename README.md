@@ -19,38 +19,32 @@ Connect to Twitch PubSub (Web Sockets) in a Laravel application, dispatching **E
 Built with [Amphp with Web Socket](https://amphp.org/websocket-client/).
 
 <!-- TABLE OF CONTENTS -->
-<details open="open" style="margin-top:20px;margin-bottom:40px">
-  <summary><h2 style="display: inline-block">Table of Contents</h2></summary>
-  <ol>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#usage">Usage</a>
-      <ul>
-        <li>
-          <a href="#topics-events">Topics & Events</a>
-          <a href="#topics-events">Callbacks</a>
-        </li>
-      </ul>
-    </li>
-    <li><a href="#changelog">Changelog</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#testing">Testing</a></li>
-    <li><a href="#security">Security</a></li>
-    <li><a href="#credits">Credits</a></li>
-    <li><a href="#license">License</a></li>
-  </ol>
-</details>
+## Table of Contents
+<ol>
+  <li>
+    <a href="#getting-started">Getting Started</a>
+    <ul>
+      <li><a href="#prerequisites">Prerequisites</a></li>
+      <li><a href="#installation">Installation</a></li>
+    </ul>
+  </li>
+  <li>
+    <a href="#usage">Usage</a>
+    <ul>
+      <li><a href="#topics--events">Topics & Events</a></li>
+      <li><a href="#callbacks">Callbacks</a></li>
+    </ul>
+  </li>
+  <li><a href="#changelog">Changelog</a></li>
+  <li><a href="#contributing">Contributing</a></li>
+  <li><a href="#testing">Testing</a></li>
+  <li><a href="#security">Security</a></li>
+  <li><a href="#credits">Credits</a></li>
+  <li><a href="#license">License</a></li>
+</ol>
 
 <!-- GETTING STARTED -->
 ## Getting Started
-
-Rrequirements and installation of Twitch PubSub.
 
 ### Prerequisites
 
@@ -66,10 +60,17 @@ composer require danilopolani/twitch-pub-sub
 
 ## Usage
 
-There's only one needed function to let the package work: `::run(string|array $twitchAuthToken, array $topics = [])`.
+The package relies on one main function:
 
-- `array|string $twitchAuthToken`: if string, it must be a valid Auth Token, otherwise it can be an associative array of authToken => [topics](https://dev.twitch.tv/docs/pubsub#topics)[].
-- `array $topics`: an array of valid [topics](https://dev.twitch.tv/docs/pubsub#topics) used when `$twitchAuthToken` is a string.
+```php
+TwitchPubSub::run(string|array $twitchAuthToken, array $topics = [])
+```
+
+
+| Argument | Description |
+| -------- | ----------- |
+| `array|string $twitchAuthToken` | if string, it must be a valid Auth Token, otherwise it can be an associative array of authToken => [topics](https://dev.twitch.tv/docs/pubsub#topics)[] |
+| `array $topics` | an array of valid [topics](https://dev.twitch.tv/docs/pubsub#topics), needed only if `$twitchAuthToken` is a string |
 
 Usually you would put the main function of the package inside an [Artisan Command](https://laravel.com/docs/8.x/artisan#writing-commands).
 
@@ -94,7 +95,7 @@ public function handle()
 }
 ```
 
-Now you can run your command.
+Now you can run your command from your terminal or a worker.
 
 > You should **definitely** [setup Supervisor](https://laravel.com/docs/8.x/queues#supervisor-configuration) or a similar tool to keep your command alive and restart it if something goes wrong.
 
@@ -123,15 +124,15 @@ Event::listen(function (\Danilopolani\TwitchPubSub\Events\WhisperReceived $event
 
 ### Topics & Events
 
-|               Topic and Example                 | Event                                             |
-|:-----------------------------------------------:|---------------------------------------------------|
-| `channel-bits-events-v1.<channel_id>`           | `\Danilopolani\TwitchPubSub\BitsDonated`          |
-| `channel-bits-events-v2.<channel_id>`           | `\Danilopolani\TwitchPubSub\BitsDonated`          |
-| `channel-bits-badge-unlocks.<channel_id>`       | `\Danilopolani\TwitchPubSub\BitsBadgeUnlocked`    |
-| `channel-points-channel-v1.<channel_id>`        | `\Danilopolani\TwitchPubSub\RewardRedeemed`       |
-| `channel-subscribe-events-v1.<channel_id>`      | `\Danilopolani\TwitchPubSub\SubscriptionReceived` |
-| `chat_moderator_actions.<user_id>.<channel_id>` | `\Danilopolani\TwitchPubSub\ModeratorActionSent`  |
-| `whispers.<user_id>`                            | `\Danilopolani\TwitchPubSub\WhisperReceived`      |
+|               Topic                 | Event                                             |
+|-----------------------------------------------|---------------------------------------------------|
+| `channel-bits-events-v1.<channel_id>`           | `\Danilopolani\TwitchPubSub\Events\BitsDonated`          |
+| `channel-bits-events-v2.<channel_id>`           | `\Danilopolani\TwitchPubSub\Events\BitsDonated`          |
+| `channel-bits-badge-unlocks.<channel_id>`       | `\Danilopolani\TwitchPubSub\Events\BitsBadgeUnlocked`    |
+| `channel-points-channel-v1.<channel_id>`        | `\Danilopolani\TwitchPubSub\Events\RewardRedeemed`       |
+| `channel-subscribe-events-v1.<channel_id>`      | `\Danilopolani\TwitchPubSub\Events\SubscriptionReceived` |
+| `chat_moderator_actions.<user_id>.<channel_id>` | `\Danilopolani\TwitchPubSub\Events\ModeratorActionSent`  |
+| `whispers.<user_id>`                            | `\Danilopolani\TwitchPubSub\Events\WhisperReceived`      |
 
 
 ### Callbacks
