@@ -3,6 +3,8 @@
 namespace Danilopolani\TwitchPubSub;
 
 use function Amp\call as ampCall;
+
+use Amp\Emitter;
 use Amp\Loop;
 use Amp\Websocket\Client;
 use Amp\Websocket\Client\Connection;
@@ -22,6 +24,10 @@ class TwitchPubSub
     protected EventsDispatcher $events;
     protected array $subscriptions;
     private Connection $connection;
+    private Emitter $messagesEmitter;
+    private Emitter $errorsEmitter;
+    private Emitter $dispatchErrorsEmitter;
+    private Emitter $connectionClosedEmitter;
 
     /**
      * Class constructor.
@@ -31,6 +37,10 @@ class TwitchPubSub
     public function __construct(EventsDispatcher $events)
     {
         $this->events = $events;
+        $this->messagesEmitter = new Emitter();
+        $this->errorsEmitter = new Emitter();
+        $this->dispatchErrorsEmitter = new Emitter();
+        $this->connectionClosedEmitter = new Emitter();
     }
 
     /**
@@ -76,6 +86,8 @@ class TwitchPubSub
                         continue;
                     }
 
+                    $this->messagesEmitter->emit($payload);
+
                     // Handle RECONNECT
                     if ($payload['type'] === 'RECONNECT') {
                         yield $this->connect();
@@ -86,8 +98,78 @@ class TwitchPubSub
                     $this->handleMessage($payload);
                 }
             } catch (ClosedException $e) {
-                Log::debug(sprintf('[TwitchPubSub] Connection closed: %s. Reconnecting...', $e->getMessage()));
+                $this->connectionClosedEmitter->emit($e);
                 yield $this->connect();
+            } catch (Throwable $e) {
+                $this->errorsEmitter->emit($e);
+            }
+        });
+    }
+
+    /**
+     * Messages event handler.
+     *
+     * @param callable $fn
+     * @return void
+     */
+    public function onMessage(callable $fn)
+    {
+        Loop::run(function () use ($fn) {
+            $iterator = $this->messagesEmitter->iterate();
+
+            while (yield $iterator->advance()) {
+                $fn($iterator->getCurrent());
+            }
+        });
+    }
+
+    /**
+     * Dispatch errors event handler.
+     *
+     * @param callable $fn
+     * @return void
+     */
+    public function onDispatchError(callable $fn)
+    {
+        Loop::run(function () use ($fn) {
+            $iterator = $this->dispatchErrorsEmitter->iterate();
+
+            while (yield $iterator->advance()) {
+                $fn(...$iterator->getCurrent());
+            }
+        });
+    }
+
+    /**
+     * Connection closed event handler.
+     *
+     * @param callable $fn
+     * @return void
+     */
+    public function onClose(callable $fn)
+    {
+        Loop::run(function () use ($fn) {
+            $iterator = $this->connectionClosedEmitter->iterate();
+
+            while (yield $iterator->advance()) {
+                $fn($iterator->getCurrent());
+            }
+        });
+    }
+
+    /**
+     * Errors event handler.
+     *
+     * @param callable $fn
+     * @return void
+     */
+    public function onError(callable $fn)
+    {
+        Loop::run(function () use ($fn) {
+            $iterator = $this->errorsEmitter->iterate();
+
+            while (yield $iterator->advance()) {
+                $fn($iterator->getCurrent());
             }
         });
     }
@@ -245,6 +327,8 @@ class TwitchPubSub
         try {
             $this->events->dispatch(new $className($data));
         } catch (Throwable $e) {
+            $this->dispatchErrorsEmitter->emit([$eventName, $data, $e]);
+
             Log::warning(sprintf(
                 '[TwitchPubSub] Listener for event "%s" threw an error: %s',
                 $eventName,

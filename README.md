@@ -71,7 +71,7 @@ Event::listen(function (\Danilopolani\TwitchPubSub\WhisperReceived $event) {
 
 ```
 
-### List of topics with related events
+## Topics & Events
 
 |               Topic and Example                 | Event                                             |
 |:-----------------------------------------------:|---------------------------------------------------|
