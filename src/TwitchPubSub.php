@@ -4,6 +4,7 @@ namespace Danilopolani\TwitchPubSub;
 
 use Amp\Loop;
 use Amp\Websocket\Client;
+use Amp\Websocket\Client\Connection;
 use Amp\Websocket\Client\Handshake;
 use Amp\Websocket\ClosedException;
 use Amp\Websocket\Options;
@@ -15,9 +16,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
+use function Amp\call as ampCall;
+
 class TwitchPubSub
 {
     protected EventsDispatcher $events;
+    protected array $subscriptions;
+    private Connection $connection;
 
     /**
      * Class constructor.
@@ -40,46 +45,31 @@ class TwitchPubSub
      */
     public function run($twitchAuthToken, array $topics = []): void
     {
-        if (! $subscriptions = $this->getSubscriptionsData($twitchAuthToken, $topics)) {
+        if (! $this->subscriptions = $this->getSubscriptionsData($twitchAuthToken, $topics)) {
             throw new Exception('Subscriptions array is not valid. It must be an associative array with Auth Token (key) and topics (value).');
         }
 
-        Loop::run(function () use ($subscriptions) {
-            // Connect
-            $options = Options::createClientDefault()->withHeartbeatPeriod(60);
-            $handshake = new Handshake('wss://pubsub-edge.twitch.tv', $options);
+        Loop::run(function () {
+            yield $this->connect();
 
-            $connection = yield Client\connect($handshake);
+            // Ping every minute
+            Loop::repeat(60 * 1000, fn () => $this->ping());
 
             // Handle SIGINT to unlisten
-            Loop::onSignal(SIGINT, function () use ($subscriptions, $connection) {
-                foreach ($subscriptions as $token => $topics) {
-                    yield $connection->send(json_encode([
-                        'type' => 'UNLISTEN',
-                        'data' => [
-                            'topics' => $topics,
-                            'auth_token' => $token,
-                        ],
-                    ]));
-                }
-
+            Loop::onSignal(SIGINT, function () {
+                yield $this->unlisten();
                 yield Loop::stop();
             });
 
-            // Send listen request
-            foreach ($subscriptions as $token => $topics) {
-                yield $connection->send(json_encode([
-                    'type' => 'LISTEN',
-                    'data' => [
-                        'topics' => $topics,
-                        'auth_token' => $token,
-                    ],
-                ]));
-            }
+            // Handle SIGINT to unlisten
+            Loop::onSignal(SIGTERM, function () {
+                yield $this->unlisten();
+                yield Loop::stop();
+            });
 
             try {
                 /** @var \Amp\Websocket\Message $message */
-                while ($message = yield $connection->receive()) {
+                while ($message = yield $this->connection->receive()) {
                     $payload = json_decode(yield $message->buffer(), true);
 
                     // Stop if cannot decode payload
@@ -89,7 +79,7 @@ class TwitchPubSub
 
                     // Handle RECONNECT
                     if ($payload['type'] === 'RECONNECT') {
-                        $connection = yield Client\connect($handshake);
+                        yield $this->connect();
 
                         continue;
                     }
@@ -98,8 +88,82 @@ class TwitchPubSub
                 }
             } catch (ClosedException $e) {
                 Log::debug(sprintf('[TwitchPubSub] Connection closed: %s. Reconnecting...', $e->getMessage()));
+                yield $this->connect();
             }
         });
+    }
+
+    /**
+     * Connect to websocket.
+     *
+     * @return void
+     */
+    protected function connect()
+    {
+        // Connect with manual ping
+        $options = Options::createClientDefault()->withoutHeartbeat();
+        $handshake = new Handshake('wss://pubsub-edge.twitch.tv', $options);
+
+        return ampCall(function () use ($handshake) {
+            $this->connection = yield Client\connect($handshake);
+            yield $this->listen($this->connection);
+        });
+    }
+
+    /**
+     * Ping web socket.
+     *
+     * @return mixed
+     */
+    protected function ping()
+    {
+        return yield $this->connection->send(json_encode([
+            'type' => 'PING',
+        ]));
+    }
+
+    /**
+     * Listen for topics.
+     *
+     * @return \Amp\Promise[]
+     */
+    protected function listen(Connection $connection): array
+    {
+        $promises = [];
+
+        foreach ($this->subscriptions as $token => $topics) {
+            $promises[] = $connection->send(json_encode([
+                'type' => 'LISTEN',
+                'data' => [
+                    'topics' => $topics,
+                    'auth_token' => $token,
+                ],
+            ]));
+        }
+
+        return $promises;
+    }
+
+    /**
+     * Unlisten topics.
+     *
+     * @return \Amp\Promise[]
+     */
+    protected function unlisten(): array
+    {
+        $promises = [];
+
+        foreach ($this->subscriptions as $token => $topics) {
+            $promises[] = $this->connection->send(json_encode([
+                'type' => 'UNLISTEN',
+                'data' => [
+                    'topics' => $topics,
+                    'auth_token' => $token,
+                ],
+            ]));
+        }
+
+        return $promises;
     }
 
     /**

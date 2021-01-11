@@ -92,13 +92,13 @@ composer test
 With Docker (Windows):
 
 ```bash
-docker run --rm -v %cd%:/app composer:2 bash -c "cd /app && composer install && ./vendor/bin/phpunit"
+docker run --rm -v %cd%:/app composer:2 bash -c "cd /app && composer install --ignore-platform-reqs && ./vendor/bin/phpunit"
 ```
 
 With Docker (Linux/OSX):
 
 ```bash
-docker run --rm -v $(pwd):/app composer:2 bash -c "cd /app && composer install && ./vendor/bin/phpunit"
+docker run --rm -v $(pwd):/app composer:2 bash -c "cd /app && composer install --ignore-platform-reqs && ./vendor/bin/phpunit"
 ```
 
 ## Changelog
