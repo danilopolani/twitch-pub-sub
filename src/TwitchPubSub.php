@@ -3,7 +3,6 @@
 namespace Danilopolani\TwitchPubSub;
 
 use function Amp\call as ampCall;
-
 use Amp\Emitter;
 use Amp\Loop;
 use Amp\Websocket\Client;
