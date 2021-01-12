@@ -46,9 +46,11 @@ Built with [Amphp with Web Socket](https://amphp.org/websocket-client/).
 <!-- GETTING STARTED -->
 ## Getting Started
 
+The package supports `Laravel 8.x` and `PHP >= 7.4`.
+
 ### Prerequisites
 
-This package requires the PHP `ext-pcntl` to be installed and active.
+The PHP extension `ext-pcntl` is required.
 
 ### Installation
 
