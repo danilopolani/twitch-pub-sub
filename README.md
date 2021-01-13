@@ -71,7 +71,7 @@ TwitchPubSub::run(string|array $twitchAuthToken, array $topics = [])
 
 | Argument | Description |
 | -------- | ----------- |
-| `array|string $twitchAuthToken` | if string, it must be a valid Auth Token, otherwise it can be an associative array of authToken => [topics](https://dev.twitch.tv/docs/pubsub#topics)[] |
+| `array\|string $twitchAuthToken` | if string, it must be a valid Auth Token, otherwise it can be an associative array of authToken => [topics](https://dev.twitch.tv/docs/pubsub#topics)[] |
 | `array $topics` | an array of valid [topics](https://dev.twitch.tv/docs/pubsub#topics), needed only if `$twitchAuthToken` is a string |
 
 Usually you would put the main function of the package inside an [Artisan Command](https://laravel.com/docs/8.x/artisan#writing-commands).
