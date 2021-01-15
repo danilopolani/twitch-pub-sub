@@ -150,13 +150,13 @@ TwitchPubSub::onMessage(function (array $payload) {
 });
 
 // A generic error occurs
-TwitchPubSub::onError(function (Throwable $e) {
+TwitchPubSub::onError(function (\Exception $e) {
     dump('generic error:', $e->getMessage());
 });
 
 // The connection has been closed
 // This could triggered from a SIGINT or SIGTERM too (stopping the script, restarting the worker etc.)
-TwitchPubSub::onClose(function (Throwable $e) {
+TwitchPubSub::onClose(function (\Amp\Websocket\ClosedException $e) {
     dump('connection closed, reason:', $e->getMessage());
 });
 

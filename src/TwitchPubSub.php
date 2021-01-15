@@ -99,7 +99,7 @@ class TwitchPubSub
             } catch (ClosedException $e) {
                 $this->connectionClosedEmitter->emit($e);
                 yield $this->connect();
-            } catch (Throwable $e) {
+            } catch (Exception $e) {
                 $this->errorsEmitter->emit($e);
             }
         });
