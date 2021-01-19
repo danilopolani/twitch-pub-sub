@@ -32,6 +32,7 @@ Built with [Amphp with Web Socket](https://amphp.org/websocket-client/).
     <a href="#usage">Usage</a>
     <ul>
       <li><a href="#topics--events">Topics & Events</a></li>
+      <li><a href="#reconnection">Reconnecting</a></li>
       <li><a href="#callbacks">Callbacks</a></li>
     </ul>
   </li>
@@ -136,12 +137,32 @@ Event::listen(function (\Danilopolani\TwitchPubSub\Events\WhisperReceived $event
 | `chat_moderator_actions.<user_id>.<channel_id>` | `\Danilopolani\TwitchPubSub\Events\ModeratorActionSent`  |
 | `whispers.<user_id>`                            | `\Danilopolani\TwitchPubSub\Events\WhisperReceived`      |
 
+### Reconnection
+
+When the connection is closed, the package itself will try to attempt a reconnection, but this would need a **fresh access token**, furthermore we **strongly suggest you** to handle the `onClose` callback and exit your script. This, with a correct configuration of [**Supervisor**](https://laravel.com/docs/8.x/queues#supervisor-configuration), will restart the worker automatically reconnecting with a fresh token, if your code is written in that way. Below a simple example with a correct flow to demonstrate how it should work:
+
+```php
+// App/Console/Commands/PubSub.php
+
+public function handle()
+{
+    // A fresh Twitch Access Token
+    $token = $user->getFreshAccessToken();
+    
+    TwitchPubSub::onClose(function (\Amp\Websocket\ClosedException $e) {
+        exit(0);
+    });
+    
+    TwitchPubSub::run($token, ['my-topic']);
+}
+```
+
+When `exit(0)` will be executed, the script will stop, Supervisor will restart it - invoking `handle` again - and refreshing the token reconnecting correctly.  
+Please see below for more information about callbacks.
 
 ### Callbacks
 
 The package provides several callbacks fired when something occurs. These callbacks **must be put before** the `::run()` method to let them work correctly.
-
-> Note: when the connection is closed the package will take care of it, restoring and reconnecting it (if possible).  
 
 ```php
 // A message (anything, PING/PONG too for example) is received
