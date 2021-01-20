@@ -2,7 +2,6 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/danilopolani/twitch-pub-sub.svg?style=flat-square)](https://packagist.org/packages/danilopolani/twitch-pub-sub)
 [![Build Status](https://travis-ci.com/danilopolani/twitch-pub-sub.svg)](https://travis-ci.com/danilopolani/twitch-pub-sub)
-[![Total Downloads](https://img.shields.io/packagist/dt/danilopolani/twitch-pub-sub.svg?style=flat-square)](https://packagist.org/packages/danilopolani/twitch-pub-sub)
 
 <!-- PROJECT LOGO -->
 <br />
