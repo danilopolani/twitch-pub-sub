@@ -63,17 +63,19 @@ class TwitchPubSub
             // Ping every minute
             Loop::repeat(60 * 1000, fn () => $this->ping());
 
-            // Handle SIGINT to unlisten
-            Loop::onSignal(SIGINT, function () {
-                yield $this->unlisten();
-                yield Loop::stop();
-            });
+            if ($this->supportsAsyncSignals()) {
+                // Handle SIGINT to unlisten
+                Loop::onSignal(SIGINT, function () {
+                    yield $this->unlisten();
+                    yield Loop::stop();
+                });
 
-            // Handle SIGINT to unlisten
-            Loop::onSignal(SIGTERM, function () {
-                yield $this->unlisten();
-                yield Loop::stop();
-            });
+                // Handle SIGINT to unlisten
+                Loop::onSignal(SIGTERM, function () {
+                    yield $this->unlisten();
+                    yield Loop::stop();
+                });
+            }
 
             try {
                 /** @var \Amp\Websocket\Message $message */
@@ -265,7 +267,7 @@ class TwitchPubSub
             return;
         }
 
-        if (isset($message['data'])) {
+        if (isset($message['data']) && !is_array($message['data'])) {
             $message['data'] = json_decode($message['data'], true);
         }
 
@@ -359,5 +361,15 @@ class TwitchPubSub
         }
 
         return $subscriptions;
+    }
+
+    /**
+     * Determine if "async" signals are supported.
+     *
+     * @return bool
+     */
+    protected function supportsAsyncSignals(): bool
+    {
+        return extension_loaded('pcntl');
     }
 }
